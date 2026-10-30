@@ -1,11 +1,17 @@
+import type { Task } from '../types/task';
+import TaskItem from './TaskItem';
+
 interface TaskListProps {
-  label?: string;
+  tasks: Task[];
 }
 
-function TaskList({ label = 'TaskList' }: TaskListProps) {
+function TaskList({ tasks }: TaskListProps) {
   return (
-    <div className="tasklist" aria-label={label}>
+    <div className="tasklist">
       <h2>TaskList</h2>
+      {tasks.map((task) => (
+        <TaskItem key={task.id} task={task} />
+      ))}
     </div>
   );
 }

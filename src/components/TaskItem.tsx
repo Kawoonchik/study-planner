@@ -1,11 +1,17 @@
+import type { Task } from '../types/task';
+
 interface TaskItemProps {
-  label?: string;
+  task: Task;
 }
 
-function TaskItem({ label = 'TaskItem' }: TaskItemProps) {
+function TaskItem({ task }: TaskItemProps) {
   return (
-    <div className="taskitem" aria-label={label}>
-      <h2>TaskItem</h2>
+    <div className="taskitem">
+      <h2>{task.title}</h2>
+      <p>{task.description}</p>
+      <p>Category: {task.category}</p>
+      <p>Priority: {task.priority}</p>
+      <p>Status: {task.completed ? 'Completed' : 'Incomplete'}</p>
     </div>
   );
 }
