@@ -1,0 +1,9 @@
+.completed-task {
+  background-color: #e8f5e9;
+  color: #526357;
+  border-left: 4px solid #4caf50;
+}
+
+.completed-task label {
+  text-decoration: line-through;
+}

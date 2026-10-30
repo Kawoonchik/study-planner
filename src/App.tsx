@@ -19,6 +19,18 @@ export default function App() {
     setTasks((currentTasks) => [...currentTasks, newTask]);
   }
 
+  function toggleTaskCompletion(id: number): void {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    );
+  }
+
+  function deleteTask(id: number): void {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+  }
+
   return (
     <div className="app-container">
       <h1>Study Planner</h1>
@@ -26,7 +38,11 @@ export default function App() {
       <TaskForm onAdd={addTask} />
       <TaskStats />
       <TaskFilters />
-      <TaskList tasks={tasks} />
+      <TaskList
+        tasks={tasks}
+        onToggle={toggleTaskCompletion}
+        onDelete={deleteTask}
+      />
     </div>
   );
 }
