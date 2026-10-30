@@ -1,11 +1,14 @@
 interface HeaderProps {
-  label?: string;
+  description?: string;
 }
 
-function Header({ label = 'Header' }: HeaderProps) {
+function Header({
+  description = 'Планувальник навчальних завдань',
+}: HeaderProps) {
   return (
-    <div className="header" aria-label={label}>
-      <h2>Header</h2>
+    <div className="header">
+      <h1>Study Planner</h1>
+      <p>{description}</p>
     </div>
   );
 }

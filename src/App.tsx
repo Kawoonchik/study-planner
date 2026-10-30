@@ -42,13 +42,13 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <h1>Study Planner</h1>
       <Header />
       <TaskForm onAdd={addTask} />
       <TaskStats tasks={tasks} />
       <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
       <TaskList
-        tasks={filteredTasks}
+        filteredTasks={filteredTasks}
+        totalCount={tasks.length}
         onToggle={toggleTaskCompletion}
         onDelete={deleteTask}
       />
