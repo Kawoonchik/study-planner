@@ -9,6 +9,15 @@ import type { Task } from './types/task';
 
 export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [filter, setFilter] = useState<'all' | 'completed' | 'uncompleted'>(
+    'all',
+  );
+  const filteredTasks =
+    filter === 'completed'
+      ? tasks.filter((task) => task.completed)
+      : filter === 'uncompleted'
+        ? tasks.filter((task) => !task.completed)
+        : tasks;
 
   function addTask(newTaskData: Omit<Task, 'id'>): void {
     const newTask: Task = {
@@ -36,10 +45,10 @@ export default function App() {
       <h1>Study Planner</h1>
       <Header />
       <TaskForm onAdd={addTask} />
-      <TaskStats />
-      <TaskFilters />
+      <TaskStats tasks={tasks} />
+      <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
       <TaskList
-        tasks={tasks}
+        tasks={filteredTasks}
         onToggle={toggleTaskCompletion}
         onDelete={deleteTask}
       />

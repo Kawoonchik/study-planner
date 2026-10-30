@@ -7,3 +7,8 @@
 .completed-task label {
   text-decoration: line-through;
 }
+
+.taskfilters button.active {
+  font-weight: bold;
+  outline: 2px solid currentColor;
+}

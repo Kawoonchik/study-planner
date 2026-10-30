@@ -1,11 +1,35 @@
+type TaskFilter = 'all' | 'completed' | 'uncompleted';
+
 interface TaskFiltersProps {
-  label?: string;
+  currentFilter: TaskFilter;
+  onFilterChange: (filter: TaskFilter) => void;
 }
 
-function TaskFilters({ label = 'TaskFilters' }: TaskFiltersProps) {
+function TaskFilters({ currentFilter, onFilterChange }: TaskFiltersProps) {
   return (
-    <div className="taskfilters" aria-label={label}>
+    <div className="taskfilters">
       <h2>TaskFilters</h2>
+      <button
+        type="button"
+        className={currentFilter === 'all' ? 'active' : ''}
+        onClick={() => onFilterChange('all')}
+      >
+        Всі
+      </button>
+      <button
+        type="button"
+        className={currentFilter === 'completed' ? 'active' : ''}
+        onClick={() => onFilterChange('completed')}
+      >
+        Виконані
+      </button>
+      <button
+        type="button"
+        className={currentFilter === 'uncompleted' ? 'active' : ''}
+        onClick={() => onFilterChange('uncompleted')}
+      >
+        Не виконані
+      </button>
     </div>
   );
 }
