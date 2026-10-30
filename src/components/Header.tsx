@@ -6,10 +6,10 @@ function Header({
   description = 'Планувальник навчальних завдань',
 }: HeaderProps) {
   return (
-    <div className="header">
-      <h1>Study Planner</h1>
-      <p>{description}</p>
-    </div>
+    <header>
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">Study Planner</h1>
+      <p className="text-gray-600 mb-8">{description}</p>
+    </header>
   );
 }
 

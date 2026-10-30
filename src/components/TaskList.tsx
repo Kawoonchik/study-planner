@@ -16,19 +16,22 @@ function TaskList({
 }: TaskListProps) {
   if (totalCount === 0) {
     return (
-      <p className="empty-message">
+      <p className="text-center text-gray-500 py-12 bg-white rounded-xl border border-gray-100 border-dashed">
         Завдань поки немає. Додайте перше навчальне завдання.
       </p>
     );
   }
 
   if (filteredTasks.length === 0) {
-    return <p className="empty-message">За цим фільтром завдань немає.</p>;
+    return (
+      <p className="text-center text-gray-500 py-12 bg-white rounded-xl border border-gray-100 border-dashed">
+        За цим фільтром завдань немає.
+      </p>
+    );
   }
 
   return (
-    <div className="tasklist">
-      <h2>TaskList</h2>
+    <ul className="flex flex-col gap-3">
       {filteredTasks.map((task) => (
         <TaskItem
           key={task.id}
@@ -37,7 +40,7 @@ function TaskList({
           onDelete={onDelete}
         />
       ))}
-    </div>
+    </ul>
   );
 }
 

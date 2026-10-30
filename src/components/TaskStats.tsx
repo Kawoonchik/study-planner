@@ -10,11 +10,19 @@ function TaskStats({ tasks }: TaskStatsProps) {
   const uncompleted = total - completed;
 
   return (
-    <div className="taskstats">
-      <h2>TaskStats</h2>
-      <p>Загальна кількість: {total}</p>
-      <p>Виконано: {completed}</p>
-      <p>Не виконано: {uncompleted}</p>
+    <div className="grid grid-cols-3 gap-4 text-center mb-8">
+      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+        <p className="text-sm text-blue-600 font-medium">Загальна кількість</p>
+        <p className="text-2xl font-bold text-blue-900">{total}</p>
+      </div>
+      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+        <p className="text-sm text-blue-600 font-medium">Виконано</p>
+        <p className="text-2xl font-bold text-blue-900">{completed}</p>
+      </div>
+      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+        <p className="text-sm text-blue-600 font-medium">Не виконано</p>
+        <p className="text-2xl font-bold text-blue-900">{uncompleted}</p>
+      </div>
     </div>
   );
 }

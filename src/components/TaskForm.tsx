@@ -33,38 +33,47 @@ function TaskForm({ onAdd }: TaskFormProps) {
   }
 
   return (
-    <div className="taskform">
-      <h2>TaskForm</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Назва завдання"
-          required
-        />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Опис"
-        />
-        <input
-          type="text"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="Категорія"
-        />
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as Priority)}
-        >
-          <option value="low">low</option>
-          <option value="medium">medium</option>
-          <option value="high">high</option>
-        </select>
-        <button type="submit">Додати</button>
-      </form>
-    </div>
+    <form
+      className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-4"
+      onSubmit={handleSubmit}
+    >
+      <input
+        className="border border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Назва завдання"
+        required
+      />
+      <textarea
+        className="border border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Опис"
+      />
+      <input
+        className="border border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        type="text"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        placeholder="Категорія"
+      />
+      <select
+        className="border border-gray-300 rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        value={priority}
+        onChange={(e) => setPriority(e.target.value as Priority)}
+      >
+        <option value="low">low</option>
+        <option value="medium">medium</option>
+        <option value="high">high</option>
+      </select>
+      <button
+        className="bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition"
+        type="submit"
+      >
+        Додати
+      </button>
+    </form>
   );
 }
 

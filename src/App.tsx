@@ -41,17 +41,19 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
-      <Header />
-      <TaskForm onAdd={addTask} />
-      <TaskStats tasks={tasks} />
-      <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
-      <TaskList
-        filteredTasks={filteredTasks}
-        totalCount={tasks.length}
-        onToggle={toggleTaskCompletion}
-        onDelete={deleteTask}
-      />
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-3xl mx-auto px-4">
+        <Header />
+        <TaskForm onAdd={addTask} />
+        <TaskStats tasks={tasks} />
+        <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
+        <TaskList
+          filteredTasks={filteredTasks}
+          totalCount={tasks.length}
+          onToggle={toggleTaskCompletion}
+          onDelete={deleteTask}
+        />
+      </div>
     </div>
   );
 }
