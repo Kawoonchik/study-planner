@@ -8,13 +8,22 @@ import { initialTasks } from './data/initialTasks';
 import type { Task } from './types/task';
 
 export default function App() {
-  const [tasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+
+  function addTask(newTaskData: Omit<Task, 'id'>): void {
+    const newTask: Task = {
+      ...newTaskData,
+      id: Date.now(),
+    };
+
+    setTasks((currentTasks) => [...currentTasks, newTask]);
+  }
 
   return (
     <div className="app-container">
       <h1>Study Planner</h1>
       <Header />
-      <TaskForm />
+      <TaskForm onAdd={addTask} />
       <TaskStats />
       <TaskFilters />
       <TaskList tasks={tasks} />
