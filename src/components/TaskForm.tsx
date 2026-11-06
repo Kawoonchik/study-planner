@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import type * as React from 'react';
-import type { Priority } from '../types/task';
+import type { Priority, Task } from '../types/task';
 import { useTaskContext } from '../hooks/useTaskContext';
 
-function TaskForm() {
-  const { addTask, toast } = useTaskContext();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [priority, setPriority] = useState<Priority>('medium');
+interface TaskFormProps {
+  taskToEdit?: Task;
+  onClose?: () => void;
+}
+
+function TaskForm({ taskToEdit, onClose }: TaskFormProps) {
+  const { addTask, updateTask, toast } = useTaskContext();
+  const [title, setTitle] = useState(taskToEdit?.title ?? '');
+  const [description, setDescription] = useState(taskToEdit?.description ?? '');
+  const [category, setCategory] = useState(taskToEdit?.category ?? '');
+  const [priority, setPriority] = useState<Priority>(taskToEdit?.priority ?? 'medium');
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -16,19 +21,26 @@ function TaskForm() {
       return;
     }
 
-    addTask({
-      title: title.trim(),
-      description,
-      category,
-      priority,
-      completed: false,
-    });
-    toast('Завдання успішно додано');
+    if (taskToEdit) {
+      updateTask({ ...taskToEdit, title: title.trim(), description, category, priority });
+      toast('Завдання успішно оновлено');
+    } else {
+      addTask({
+        title: title.trim(),
+        description,
+        category,
+        priority,
+        completed: false,
+      });
+      toast('Завдання успішно додано');
 
-    setTitle('');
-    setDescription('');
-    setCategory('');
-    setPriority('medium');
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setPriority('medium');
+    }
+
+    onClose?.();
   }
 
   return (
@@ -66,12 +78,23 @@ function TaskForm() {
         <option value="medium">medium</option>
         <option value="high">high</option>
       </select>
-      <button
-        className="bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition"
-        type="submit"
-      >
-        Додати
-      </button>
+      <div className="flex gap-2">
+        <button
+          className="flex-1 bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition"
+          type="submit"
+        >
+          {taskToEdit ? 'Зберегти' : 'Додати'}
+        </button>
+        {onClose && (
+          <button
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            type="button"
+            onClick={onClose}
+          >
+            Скасувати
+          </button>
+        )}
+      </div>
     </form>
   );
 }

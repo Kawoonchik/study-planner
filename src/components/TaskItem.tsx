@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Task } from '../types/task';
 import { useTaskContext } from '../hooks/useTaskContext';
+import TaskForm from './TaskForm';
 
 interface TaskItemProps {
   task: Task;
@@ -11,6 +12,7 @@ interface TaskItemProps {
 export default function TaskItem({ task }: TaskItemProps) {
   const { toggleTask, requestDelete, confirmDelete, undoDelete, toast } = useTaskContext();
   const [timeLeft, setTimeLeft] = useState(5);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Побічний ефект для таймера Undoable Delete
   useEffect(() => {
@@ -39,6 +41,14 @@ export default function TaskItem({ task }: TaskItemProps) {
       clearInterval(intervalId);
     };
   }, [task.isDeleting, task.id, confirmDelete, toast]);
+
+  if (isEditing) {
+    return (
+      <div className="w-full bg-white p-2 rounded-xl border border-blue-200 shadow-sm">
+        <TaskForm taskToEdit={task} onClose={() => setIsEditing(false)} />
+      </div>
+    );
+  }
 
   // Умовний рендеринг: якщо завдання очікує видалення, показуємо інший UI[cite: 17, 18]
   if (task.isDeleting) {
@@ -88,13 +98,20 @@ export default function TaskItem({ task }: TaskItemProps) {
         </div>
       </div>
       
-      {/* Кнопка викликає requestDelete замість остаточного видалення */}
-      <button
-        onClick={() => requestDelete(task.id)}
-        className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200 text-sm font-medium transition"
-      >
-        Видалити
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-sm font-medium transition"
+        >
+          Редагувати
+        </button>
+        <button
+          onClick={() => requestDelete(task.id)}
+          className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg border border-red-200 text-sm font-medium transition"
+        >
+          Видалити
+        </button>
+      </div>
     </li>
   );
 }
