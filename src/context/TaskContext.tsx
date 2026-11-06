@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useState, type ReactNode, useCallback } from 'react';
+import { useReducer, useEffect, useState, type ReactNode, useCallback, useMemo } from 'react';
 import type { Task } from '../types/task';
 import { taskReducer } from '../reducers/taskReducer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -49,13 +49,17 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     toast('Дані скинуто до початкових');
   }, [toast]);
 
-  return (
-    <TaskContext.Provider value={{
-      tasks, filter, setFilter,
-      addTask, updateTask, toggleTask, requestDelete, confirmDelete, undoDelete, clearCompleted, resetTasks,
-      toast, toastMessage
-    }}>
-      {children}
-    </TaskContext.Provider>
-  );
+    const contextValue = useMemo(() => ({
+        tasks, filter, setFilter,
+        addTask, updateTask, toggleTask, requestDelete, confirmDelete, undoDelete, clearCompleted, resetTasks,
+        toast, toastMessage
+    }), [
+        tasks, filter, setFilter, addTask, updateTask, toggleTask, requestDelete, confirmDelete, undoDelete, clearCompleted, resetTasks, toast, toastMessage
+    ]);
+
+    return (
+        <TaskContext.Provider value={contextValue}>
+        {children}
+        </TaskContext.Provider>
+    );
 }
