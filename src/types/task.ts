@@ -21,3 +21,4 @@ export type TaskAction =
   | { type: 'undoDelete'; payload: { id: number } }
   | { type: 'clearCompleted' }
   | { type: 'reset'; payload: Task[] };
+
