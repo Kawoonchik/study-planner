@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import type * as React from 'react';
-import type { Priority, Task } from '../types/task';
+import type { Priority } from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
 
-interface TaskFormProps {
-  onAdd: (task: Omit<Task, 'id'>) => void;
-}
-
-function TaskForm({ onAdd }: TaskFormProps) {
+function TaskForm() {
+  const { addTask, toast } = useTaskContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -18,13 +16,14 @@ function TaskForm({ onAdd }: TaskFormProps) {
       return;
     }
 
-    onAdd({
+    addTask({
       title: title.trim(),
       description,
       category,
       priority,
       completed: false,
     });
+    toast('Завдання успішно додано');
 
     setTitle('');
     setDescription('');

@@ -1,10 +1,12 @@
 import { createContext } from 'react';
 import type { Task } from '../types/task';
 
+export type TaskFilter = 'all' | 'completed' | 'incomplete';
+
 interface TaskContextType {
   tasks: Task[];
-  filter: string;
-  setFilter: (filter: string) => void;
+  filter: TaskFilter;
+  setFilter: (filter: TaskFilter) => void;
   addTask: (task: Omit<Task, 'id' | 'isDeleting'>) => void;
   updateTask: (task: Task) => void;
   toggleTask: (id: number) => void;

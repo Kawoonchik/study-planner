@@ -1,20 +1,16 @@
-import type { Task } from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
 import TaskItem from './TaskItem';
 
-interface TaskListProps {
-  filteredTasks: Task[];
-  totalCount: number;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-}
+function TaskList() {
+  const { tasks, filter } = useTaskContext();
+  const filteredTasks =
+    filter === 'completed'
+      ? tasks.filter((task) => task.completed)
+      : filter === 'incomplete'
+        ? tasks.filter((task) => !task.completed)
+        : tasks;
 
-function TaskList({
-  filteredTasks,
-  totalCount,
-  onToggle,
-  onDelete,
-}: TaskListProps) {
-  if (totalCount === 0) {
+  if (tasks.length === 0) {
     return (
       <p className="text-center text-gray-500 py-12 bg-white rounded-xl border border-gray-100 border-dashed">
         Завдань поки немає. Додайте перше навчальне завдання.
@@ -36,8 +32,6 @@ function TaskList({
         <TaskItem
           key={task.id}
           task={task}
-          onToggle={onToggle}
-          onDelete={onDelete}
         />
       ))}
     </ul>

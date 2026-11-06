@@ -3,7 +3,7 @@ import type { Task } from '../types/task';
 import { taskReducer } from '../reducers/taskReducer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { initialTasks } from '../data/initialTasks';
-import { TaskContext } from './taskContext';
+import { TaskContext, type TaskFilter } from './task-context';
 
 const TASKS_STORAGE_KEY = 'study-planner-tasks';
 
@@ -26,7 +26,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   }, [tasks]);
 
   // Фільтр керується нашим кастомним хуком
-  const [filter, setFilter] = useLocalStorage('study-planner-filter', 'all');
+  const [filter, setFilter] = useLocalStorage<TaskFilter>('study-planner-filter', 'all');
 
   // Логіка для Toast-повідомлень (показуємо 3 секунди)
   const [toastMessage, setToastMessage] = useState<string | null>(null);
