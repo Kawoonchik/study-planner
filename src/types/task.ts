@@ -1,10 +1,10 @@
-export type Priority = 'low' | 'medium' | 'high'; //[cite: 3]
+export type Priority = 'low' | 'medium' | 'high';
 
 export interface Task {
-  id: number; //[cite: 3]
-  title: string; //[cite: 3]
-  description: string; //[cite: 3]
-  completed: boolean; //[cite: 3]
-  priority: Priority; //[cite: 3]
-  category: string; //[cite: 3]
+  id: number; 
+  title: string;
+  description: string;
+  completed: boolean; 
+  priority: Priority; 
+  category: string; 
 }
