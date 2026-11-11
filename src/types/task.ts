@@ -1,5 +1,4 @@
-export const PRIORITIES = ['low', 'medium', 'high'] as const;
-export type Priority = typeof PRIORITIES[number];
+export type Priority = 'low' | 'medium' | 'high';
 
 export interface Task {
   id: number;
@@ -8,10 +7,10 @@ export interface Task {
   completed: boolean;
   priority: Priority;
   category: string;
-  isDeleting?: boolean; // Необов'язкове поле для позначення завдання, що очікує видалення[cite: 25]
+  isDeleting?: boolean; 
 }
 
-// Типізація дій (Actions) для Reducer'а[cite: 22, 23]
+
 export type TaskAction =
   | { type: 'add'; payload: Omit<Task, 'id' | 'isDeleting'> }
   | { type: 'toggle'; payload: { id: number } }

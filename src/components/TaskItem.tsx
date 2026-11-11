@@ -5,8 +5,6 @@ import TaskForm from './TaskForm';
 
 interface TaskItemProps {
   task: Task;
-  // Ми більше не передаємо callback-функції через props, 
-  // бо тепер беремо їх напряму з контексту!
 }
 
 export default function TaskItem({ task }: TaskItemProps) {
@@ -14,28 +12,28 @@ export default function TaskItem({ task }: TaskItemProps) {
   const [timeLeft, setTimeLeft] = useState(5);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Побічний ефект для таймера Undoable Delete
+
   useEffect(() => {
     let timerId: ReturnType<typeof setTimeout>;
     let intervalId: ReturnType<typeof setInterval>;
 
     if (task.isDeleting) {
-      setTimeLeft(5); // Скидаємо лічильник на 5
-      toast('Завдання буде видалено...'); // Показуємо Toast[cite: 17]
+      setTimeLeft(5); 
+      toast('Завдання буде видалено...'); 
 
-      // Інтервал для візуального відліку секунд в інтерфейсі
+
       intervalId = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
 
-      // Основний таймер на 5 секунд, після якого відбувається остаточне видалення[cite: 17]
+
       timerId = setTimeout(() => {
         confirmDelete(task.id);
         toast('Завдання видалено остаточно');
       }, 5000);
     }
 
-    // Cleanup-функція: викликається при розмонтуванні або перед наступним запуском ефекту
+
     return () => {
       clearTimeout(timerId);
       clearInterval(intervalId);
@@ -50,7 +48,7 @@ export default function TaskItem({ task }: TaskItemProps) {
     );
   }
 
-  // Умовний рендеринг: якщо завдання очікує видалення, показуємо інший UI[cite: 17, 18]
+
   if (task.isDeleting) {
     return (
       <li className="p-5 border rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 bg-red-50 border-red-200 transition duration-200">
@@ -60,7 +58,7 @@ export default function TaskItem({ task }: TaskItemProps) {
         <button
           onClick={() => {
             undoDelete(task.id);
-            toast('Видалення скасовано'); // Toast після скасування[cite: 17]
+            toast('Видалення скасовано');
           }}
           className="text-gray-700 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium transition shadow-sm"
         >
@@ -70,7 +68,7 @@ export default function TaskItem({ task }: TaskItemProps) {
     );
   }
 
-  // Звичайний рендеринг завдання (перероблений під Tailwind з минулої лаби)
+
   return (
     <li className={`p-5 border rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition duration-200 ${
       task.completed ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:border-blue-300'

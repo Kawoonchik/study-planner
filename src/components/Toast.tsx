@@ -3,7 +3,6 @@ import { useTaskContext } from '../hooks/useTaskContext';
 export default function Toast() {
   const { toastMessage } = useTaskContext();
 
-  // Якщо повідомлення немає, компонент нічого не рендерить
   if (!toastMessage) return null;
 
   return (

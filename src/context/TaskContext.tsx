@@ -7,9 +7,9 @@ import { TaskContext, type TaskFilter } from './task-context';
 
 const TASKS_STORAGE_KEY = 'study-planner-tasks';
 
-// 2. Створюємо Provider — компонент-обгортку[cite: 15]
+
 export function TaskProvider({ children }: { children: ReactNode }) {
-  // Ініціалізація Reducer'а з читанням із localStorage
+
   const [tasks, dispatch] = useReducer(taskReducer, [], () => {
     try {
       const saved = localStorage.getItem(TASKS_STORAGE_KEY);
@@ -20,22 +20,22 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Синхронізація Reducer'а з localStorage при кожній зміні масиву tasks
+
   useEffect(() => {
     localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
 
-  // Фільтр керується нашим кастомним хуком
+
   const [filter, setFilter] = useLocalStorage<TaskFilter>('study-planner-filter', 'all');
 
-  // Логіка для Toast-повідомлень (показуємо 3 секунди)
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toast = useCallback((message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  // 3. Функції-обгортки над dispatch (щоб компоненти не знали про Reducer)[cite: 16]
+
   const addTask = useCallback((payload: Omit<Task, 'id' | 'isDeleting'>) => dispatch({ type: 'add', payload }), []);
   const updateTask = useCallback((payload: Task) => dispatch({ type: 'update', payload }), []);
   const toggleTask = useCallback((id: number) => dispatch({ type: 'toggle', payload: { id } }), []);
