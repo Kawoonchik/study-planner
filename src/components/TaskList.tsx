@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
-import { useTaskContext } from '../context/task-context';
+import { useEffect, useState } from 'react';
+import { useTaskContext } from '../hooks/useTaskContext'; // Змінили шлях до папки hooks
 import { taskRepository } from '../repositories/taskRepository';
-import { Task } from '../types/task';
-import { TaskItem } from './TaskItem';
+import type { Task } from '../types/task'; // Додали слово type
+import TaskItem from './TaskItem'; // Прибрали фігурні дужки {}
 
 const ITEMS_PER_PAGE = 10;
 
@@ -51,6 +51,15 @@ export function TaskList() {
     };
   }, [currentPage]);
 
+  // Функції для локального оновлення списку (щоб не перезавантажувати всі дані з сервера)[cite: 11]
+  const handleUpdateLocal = (updatedTask: Task) => {
+    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+  };
+
+  const handleDeleteLocal = (id: number) => {
+    setTasks(prev => prev.filter(t => t.id !== id));
+  };
+
   // Фільтруємо завдання на клієнті (оскільки DummyJSON не має endpoint'у для фільтрації completed)
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
@@ -84,10 +93,10 @@ export function TaskList() {
         <ul className="flex flex-col gap-3">
           {filteredTasks.map((task) => (
             <TaskItem 
-              key={task.id} 
-              task={task} 
-              // Наступним кроком ми оновимо TaskItem, щоб він не приймав пропси, а працював через Repository
-              // Поки що можеш залишити пропси пустими, якщо TypeScript свариться, або передати заглушки
+            key={task.id} 
+            task={task} 
+            onUpdate={handleUpdateLocal}
+            onDelete={handleDeleteLocal}
             />
           ))}
         </ul>
