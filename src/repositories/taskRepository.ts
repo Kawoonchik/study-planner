@@ -64,5 +64,13 @@ export const taskRepository = {
     const response = await httpClient.delete(`/todos/${id}`);
     // DummyJSON повертає { ..., isDeleted: true }
     return response.data.isDeleted;
-  }
+  },
+
+  async search(query: string, limit = 10, skip = 0, signal?: AbortSignal): Promise<{ tasks: Task[], total: number }> {
+    const response = await httpClient.get<TodosResponse>(`/todos/search?q=${encodeURIComponent(query)}&limit=${limit}&skip=${skip}`, { signal });
+    return {
+      tasks: response.data.todos.map(toTask),
+      total: response.data.total
+    };
+  },
 };

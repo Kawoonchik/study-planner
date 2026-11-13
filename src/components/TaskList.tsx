@@ -1,32 +1,46 @@
 import { useEffect, useState } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
+import { useDebounce } from '../hooks/useDebounce'; // Імпортуємо debounce-хук
 import { taskRepository } from '../repositories/taskRepository';
 import type { Task } from '../types/task';
 
-// Імпортуємо всі наші UI-компоненти (переконайся, що вони експортуються як default)
 import TaskItem from './TaskItem';
 import TaskForm from './TaskForm';
 import TaskStats from './TaskStats';
-import TaskFilters from './TaskFilters'; // Якщо експортується без default, додай фігурні дужки { TaskFilters }
+import TaskFilters from './TaskFilters';
 
 const ITEMS_PER_PAGE = 10;
 
 export function TaskList() {
-  const { filter, toast } = useTaskContext();
+  const { filter } = useTaskContext();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Стейт для пошукового рядка
+  const [searchQuery, setSearchQuery] = useState('');
+  // "Затримане" значення пошуку (чекає 400мс після зупинки введення)
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
 
-  const fetchTasks = async (page: number, signal?: AbortSignal) => {
+  // Головна функція завантаження (працює і для звичайного списку, і для пошуку)
+  const fetchTasks = async (page: number, query: string, signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
     try {
       const skip = (page - 1) * ITEMS_PER_PAGE;
-      const data = await taskRepository.getAll(ITEMS_PER_PAGE, skip, signal);
+      let data;
+
+      // Якщо введено текст пошуку — викликаємо метод search, інакше звичайний getAll
+      if (query.trim()) {
+        data = await taskRepository.search(query, ITEMS_PER_PAGE, skip, signal);
+      } else {
+        data = await taskRepository.getAll(ITEMS_PER_PAGE, skip, signal);
+      }
+
       setTasks(data.tasks);
       setTotalTasks(data.total);
     } catch (err: any) {
@@ -40,15 +54,21 @@ export function TaskList() {
     }
   };
 
+  // Спрацьовує при зміні сторінки або коли змінюється дебаунс-текст пошуку
   useEffect(() => {
     const controller = new AbortController();
-    fetchTasks(currentPage, controller.signal);
+    fetchTasks(currentPage, debouncedSearchQuery, controller.signal);
     return () => {
       controller.abort();
     };
-  }, [currentPage]);
+  }, [currentPage, debouncedSearchQuery]);
 
-  // Функції для локального оновлення після дій у TaskItem та TaskForm
+  // При зміні пошукового запиту скидаємо сторінку на першу
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); 
+  };
+
   const handleUpdateLocal = (updatedTask: Task) => {
     setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
   };
@@ -63,28 +83,6 @@ export function TaskList() {
     setTotalTasks(prev => prev + 1);
   };
 
-  const handleClearCompleted = async () => {
-    const completedTasks = tasks.filter(task => task.completed);
-    const results = await Promise.allSettled(
-      completedTasks.map(task => taskRepository.delete(task.id))
-    );
-    const deletedIds = results.reduce<number[]>((ids, result, index) => {
-      if (result.status === 'fulfilled' && result.value) {
-        ids.push(completedTasks[index].id);
-      }
-      return ids;
-    }, []);
-
-    if (deletedIds.length > 0) {
-      setTasks(prev => prev.filter(task => !deletedIds.includes(task.id)));
-      setTotalTasks(prev => Math.max(0, prev - deletedIds.length));
-    }
-
-    if (deletedIds.length < completedTasks.length) {
-      toast('Не вдалося видалити всі виконані завдання');
-    }
-  };
-
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'incomplete') return !task.completed;
@@ -95,23 +93,29 @@ export function TaskList() {
 
   return (
     <div className="flex flex-col">
-      {/* 1. Форма створення */}
       <TaskForm onSave={handleSaveNewTask} />
-      
-      {/* 2. Статистика (передаємо дані) */}
       <TaskStats tasks={tasks} />
       
-      {/* 3. Фільтри */}
-      <TaskFilters onClearCompleted={handleClearCompleted} />
+      {/* Поле пошуку з іконкою */}
+      <div className="mb-4">
+        <input 
+          type="text"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          placeholder="🔍 Пошук завдань за назвою..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+        />
+      </div>
 
-      {/* 4. Сам список */}
+      <TaskFilters />
+
       <div className="mt-4">
         {isLoading && <div className="text-center p-8 text-gray-500">Завантаження з сервера...</div>}
         
         {error && (
           <div className="text-center p-8 text-red-500">
             <p>Помилка завантаження: {error}</p>
-            <button onClick={() => fetchTasks(currentPage)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+            <button onClick={() => fetchTasks(currentPage, debouncedSearchQuery)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
               Спробувати ще
             </button>
           </div>
@@ -140,7 +144,6 @@ export function TaskList() {
           <p className="text-center text-gray-500 py-4">Немає завдань для цього фільтра.</p>
         )}
 
-        {/* 5. Пагінація */}
         {totalPages > 1 && (
           <div className="flex justify-between items-center mt-6 border-t border-gray-200 pt-4">
             <button 

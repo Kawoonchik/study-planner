@@ -1,7 +1,7 @@
 import { useTaskContext } from '../hooks/useTaskContext';
 
 interface TaskFiltersProps {
-  onClearCompleted: () => void;
+  onClearCompleted?: () => void;
 }
 
 function TaskFilters({ onClearCompleted }: TaskFiltersProps) {
