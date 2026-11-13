@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
 import { taskRepository } from '../repositories/taskRepository';
 import type { Task, Priority } from '../types/task';

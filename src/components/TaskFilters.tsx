@@ -1,7 +1,11 @@
 import { useTaskContext } from '../hooks/useTaskContext';
 
-function TaskFilters() {
-  const { filter, setFilter, clearCompleted } = useTaskContext();
+interface TaskFiltersProps {
+  onClearCompleted: () => void;
+}
+
+function TaskFilters({ onClearCompleted }: TaskFiltersProps) {
+  const { filter, setFilter } = useTaskContext();
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
@@ -43,7 +47,7 @@ function TaskFilters() {
       <button
         type="button"
         className="px-4 py-2 rounded-full font-medium text-red-600 hover:bg-red-50 transition"
-        onClick={clearCompleted}
+        onClick={onClearCompleted}
       >
         Очистити виконані
       </button>

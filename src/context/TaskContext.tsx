@@ -1,17 +1,6 @@
-import { createContext, useState, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-
-export type TaskFilter = 'all' | 'completed' | 'incomplete';
-
-// Залишаємо в Контексті ТІЛЬКИ UI-стан (фільтр та повідомлення)[cite: 15]
-interface TaskContextValue {
-  filter: TaskFilter;
-  setFilter: (filter: TaskFilter) => void;
-  toast: (message: string) => void;
-  toastMessage: string | null;
-}
-
-export const TaskContext = createContext<TaskContextValue | undefined>(undefined);
+import { TaskContext, type TaskFilter } from './task-context';
 
 export function TaskProvider({ children }: { children: ReactNode }) {
   // Активний фільтр все ще зберігаємо в localStorage (це дозволено методичкою)[cite: 15]
