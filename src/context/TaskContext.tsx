@@ -1,65 +1,36 @@
-import { useReducer, useEffect, useState, type ReactNode, useCallback, useMemo } from 'react';
-import type { Task } from '../types/task';
-import { taskReducer } from '../reducers/taskReducer';
+import { createContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { initialTasks } from '../data/initialTasks';
-import { TaskContext, type TaskFilter } from './task-context';
 
-const TASKS_STORAGE_KEY = 'study-planner-tasks';
+export type TaskFilter = 'all' | 'completed' | 'incomplete';
 
+// Залишаємо в Контексті ТІЛЬКИ UI-стан (фільтр та повідомлення)[cite: 15]
+interface TaskContextValue {
+  filter: TaskFilter;
+  setFilter: (filter: TaskFilter) => void;
+  toast: (message: string) => void;
+  toastMessage: string | null;
+}
+
+export const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
-
-  const [tasks, dispatch] = useReducer(taskReducer, [], () => {
-    try {
-      const saved = localStorage.getItem(TASKS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : initialTasks;
-    } catch (error) {
-      console.warn("Помилка читання завдань із localStorage", error);
-      return initialTasks;
-    }
-  });
-
-
-  useEffect(() => {
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
-
-
+  // Активний фільтр все ще зберігаємо в localStorage (це дозволено методичкою)[cite: 15]
   const [filter, setFilter] = useLocalStorage<TaskFilter>('study-planner-filter', 'all');
-
-
+  
+  // Логіка для Toast-повідомлень залишається без змін
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toast = useCallback((message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
+  const contextValue = useMemo(() => ({
+    filter, setFilter, toast, toastMessage
+  }), [filter, setFilter, toast, toastMessage]);
 
-  const addTask = useCallback((payload: Omit<Task, 'id' | 'isDeleting'>) => dispatch({ type: 'add', payload }), []);
-  const updateTask = useCallback((payload: Task) => dispatch({ type: 'update', payload }), []);
-  const toggleTask = useCallback((id: number) => dispatch({ type: 'toggle', payload: { id } }), []);
-  const requestDelete = useCallback((id: number) => dispatch({ type: 'requestDelete', payload: { id } }), []);
-  const confirmDelete = useCallback((id: number) => dispatch({ type: 'confirmDelete', payload: { id } }), []);
-  const undoDelete = useCallback((id: number) => dispatch({ type: 'undoDelete', payload: { id } }), []);
-  const clearCompleted = useCallback(() => dispatch({ type: 'clearCompleted' }), []);
-  
-  const resetTasks = useCallback(() => {
-    dispatch({ type: 'reset', payload: initialTasks });
-    toast('Дані скинуто до початкових');
-  }, [toast]);
-
-    const contextValue = useMemo(() => ({
-        tasks, filter, setFilter,
-        addTask, updateTask, toggleTask, requestDelete, confirmDelete, undoDelete, clearCompleted, resetTasks,
-        toast, toastMessage
-    }), [
-        tasks, filter, setFilter, addTask, updateTask, toggleTask, requestDelete, confirmDelete, undoDelete, clearCompleted, resetTasks, toast, toastMessage
-    ]);
-
-    return (
-        <TaskContext.Provider value={contextValue}>
-        {children}
-        </TaskContext.Provider>
-    );
+  return (
+    <TaskContext.Provider value={contextValue}>
+      {children}
+    </TaskContext.Provider>
+  );
 }
