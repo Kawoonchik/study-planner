@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { taskRepository } from '../repositories/taskRepository';
 import { useTaskContext } from '../hooks/useTaskContext';
 import type { Task } from '../types/task';
-import { TaskForm } from './TaskForm'; // Залежить від того, як ти експортував TaskForm (якщо default, то без {})
+import TaskForm from './TaskForm'; // Залежить від того, як ти експортував TaskForm (якщо default, то без {})
 
 interface TaskItemProps {
   task: Task;
