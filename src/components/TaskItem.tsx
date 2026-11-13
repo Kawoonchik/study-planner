@@ -3,6 +3,7 @@ import { taskRepository } from '../repositories/taskRepository';
 import { useTaskContext } from '../hooks/useTaskContext';
 import type { Task } from '../types/task';
 import TaskForm from './TaskForm'; // Залежить від того, як ти експортував TaskForm (якщо default, то без {})
+import TaskDetailsModal from './TaskDetailsModal';
 
 interface TaskItemProps {
   task: Task;
@@ -16,6 +17,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false); // Власний UI для підтвердження видалення[cite: 15]
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Додаткове завдання 2: Optimistic update для зміни completed[cite: 15]
   const handleToggle = async () => {
@@ -113,6 +115,14 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         </div>
       </div>
       <div className="flex gap-2">
+        {/* НОВА КНОПКА ДЕТАЛІВ */}
+        <button 
+          onClick={() => setShowDetailsModal(true)}
+          className="text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
+        >
+          Деталі
+        </button>
+        
         <button 
           onClick={() => setIsEditing(true)}
           className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition"
@@ -126,6 +136,14 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
           Видалити
         </button>
       </div>
+
+      {/* НОВИЙ ВИВІД МОДАЛЬНОГО ВІКНА */}
+      {showDetailsModal && (
+        <TaskDetailsModal 
+          taskId={task.id} 
+          onClose={() => setShowDetailsModal(false)} 
+        />
+      )}
     </li>
   );
 }
