@@ -1,58 +1,44 @@
 import { useTaskContext } from '../hooks/useTaskContext';
+import type { TaskFilter } from '../context/task-context';
 
 interface TaskFiltersProps {
   onClearCompleted?: () => void;
 }
 
-function TaskFilters({ onClearCompleted }: TaskFiltersProps) {
+export default function TaskFilters({ onClearCompleted }: TaskFiltersProps) {
   const { filter, setFilter } = useTaskContext();
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className={`px-5 py-2 rounded-full border font-medium transition ${
-            filter === 'all'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-          }`}
+    <div className="flex flex-wrap justify-between items-center gap-4 my-4">
+      <div className="flex gap-2">
+        <button 
           onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-xl font-medium transition ${filter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
         >
           Всі
         </button>
-        <button
-          type="button"
-          className={`px-5 py-2 rounded-full border font-medium transition ${
-            filter === 'completed'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-          }`}
+        <button 
           onClick={() => setFilter('completed')}
+          className={`px-4 py-2 rounded-xl font-medium transition ${filter === 'completed' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
         >
           Виконані
         </button>
-        <button
-          type="button"
-          className={`px-5 py-2 rounded-full border font-medium transition ${
-            filter === 'incomplete'
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-          }`}
+        <button 
           onClick={() => setFilter('incomplete')}
+          className={`px-4 py-2 rounded-xl font-medium transition ${filter === 'incomplete' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
         >
           Не виконані
         </button>
       </div>
-      <button
-        type="button"
-        className="px-4 py-2 rounded-full font-medium text-red-600 hover:bg-red-50 transition"
-        onClick={onClearCompleted}
-      >
-        Очистити виконані
-      </button>
+
+      {onClearCompleted && (
+        <button 
+          onClick={onClearCompleted}
+          className="text-red-600 hover:text-red-700 font-medium text-sm transition hover:underline"
+        >
+          Очистити виконані
+        </button>
+      )}
     </div>
   );
 }
-
-export default TaskFilters;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTaskContext } from '../hooks/useTaskContext';
-import { useDebounce } from '../hooks/useDebounce'; // Імпортуємо debounce-хук
+import { useDebounce } from '../hooks/useDebounce';
 import { taskRepository } from '../repositories/taskRepository';
 import type { Task } from '../types/task';
 
@@ -12,21 +12,18 @@ import TaskFilters from './TaskFilters';
 const ITEMS_PER_PAGE = 10;
 
 export function TaskList() {
-  const { filter } = useTaskContext();
+  const { filter, toast } = useTaskContext();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Стейт для пошукового рядка
   const [searchQuery, setSearchQuery] = useState('');
-  // "Затримане" значення пошуку (чекає 400мс після зупинки введення)
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
 
-  // Головна функція завантаження (працює і для звичайного списку, і для пошуку)
   const fetchTasks = async (page: number, query: string, signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
@@ -34,7 +31,6 @@ export function TaskList() {
       const skip = (page - 1) * ITEMS_PER_PAGE;
       let data;
 
-      // Якщо введено текст пошуку — викликаємо метод search, інакше звичайний getAll
       if (query.trim()) {
         data = await taskRepository.search(query, ITEMS_PER_PAGE, skip, signal);
       } else {
@@ -54,7 +50,6 @@ export function TaskList() {
     }
   };
 
-  // Спрацьовує при зміні сторінки або коли змінюється дебаунс-текст пошуку
   useEffect(() => {
     const controller = new AbortController();
     fetchTasks(currentPage, debouncedSearchQuery, controller.signal);
@@ -63,7 +58,6 @@ export function TaskList() {
     };
   }, [currentPage, debouncedSearchQuery]);
 
-  // При зміні пошукового запиту скидаємо сторінку на першу
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1); 
@@ -83,6 +77,17 @@ export function TaskList() {
     setTotalTasks(prev => prev + 1);
   };
 
+  // Кнопка очищення виконаних
+  const handleClearCompleted = async () => {
+    const completedTasks = tasks.filter(t => t.completed);
+    for (const task of completedTasks) {
+      await taskRepository.delete(task.id);
+    }
+    setTasks(prev => prev.filter(t => !t.completed));
+    setTotalTasks(prev => Math.max(0, prev - completedTasks.length));
+    toast('Виконані завдання успішно очищено');
+  };
+
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'completed') return task.completed;
     if (filter === 'incomplete') return !task.completed;
@@ -96,33 +101,34 @@ export function TaskList() {
       <TaskForm onSave={handleSaveNewTask} />
       <TaskStats tasks={tasks} />
       
-      {/* Поле пошуку з іконкою */}
       <div className="mb-4">
         <input 
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
           placeholder="🔍 Пошук завдань за назвою..."
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
         />
       </div>
 
-      <TaskFilters />
+      <TaskFilters onClearCompleted={handleClearCompleted} />
 
       <div className="mt-4">
-        {isLoading && <div className="text-center p-8 text-gray-500">Завантаження з сервера...</div>}
+        {isLoading && (
+          <div className="text-center p-8 text-gray-500 font-medium">Завантаження з сервера...</div>
+        )}
         
-        {error && (
-          <div className="text-center p-8 text-red-500">
+        {error && !isLoading && (
+          <div className="text-center p-8 text-red-500 bg-white rounded-xl border border-red-200">
             <p>Помилка завантаження: {error}</p>
-            <button onClick={() => fetchTasks(currentPage, debouncedSearchQuery)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+            <button onClick={() => fetchTasks(currentPage, debouncedSearchQuery)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
               Спробувати ще
             </button>
           </div>
         )}
 
         {!isLoading && !error && tasks.length === 0 && (
-          <div className="text-center p-8 text-gray-500 bg-white rounded-xl border border-gray-200">
+          <div className="text-center p-8 text-gray-500 bg-white rounded-xl border border-gray-200 shadow-sm">
             Завдань не знайдено.
           </div>
         )}
