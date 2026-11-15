@@ -9,7 +9,7 @@ if (!baseURL) {
 
 // Додаткове завдання 3: Створення Axios instance з базовим URL[cite: 15]
 export const httpClient = axios.create({
-  baseURL: baseURL || 'https://dummyjson.com',
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
