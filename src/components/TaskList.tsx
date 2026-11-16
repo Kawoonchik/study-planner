@@ -77,7 +77,6 @@ export function TaskList() {
     setTotalTasks(prev => prev + 1);
   };
 
-  // Кнопка очищення виконаних
   const handleClearCompleted = async () => {
     const completedTasks = tasks.filter(t => t.completed);
     for (const task of completedTasks) {

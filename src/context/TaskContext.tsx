@@ -3,10 +3,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { TaskContext, type TaskFilter } from './task-context';
 
 export function TaskProvider({ children }: { children: ReactNode }) {
-  // Активний фільтр все ще зберігаємо в localStorage (це дозволено методичкою)[cite: 15]
   const [filter, setFilter] = useLocalStorage<TaskFilter>('study-planner-filter', 'all');
   
-  // Логіка для Toast-повідомлень залишається без змін
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toast = useCallback((message: string) => {
     setToastMessage(message);

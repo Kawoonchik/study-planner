@@ -8,15 +8,12 @@ interface TaskDetailsModalProps {
 }
 
 export default function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalProps) {
-  // Локальний стейт компонента для збереження даних завдання
   const [taskDetails, setTaskDetails] = useState<Task | null>(null);
   
-  // Асинхронні стани[cite: 20]
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // AbortController для скасування запиту, якщо користувач закриє вікно до завершення завантаження
     const controller = new AbortController();
 
     const fetchDetails = async () => {
@@ -38,7 +35,6 @@ export default function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalPr
 
     fetchDetails();
 
-    // Cleanup-функція скасовує запит[cite: 26]
     return () => {
       controller.abort();
     };
@@ -56,14 +52,13 @@ export default function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalPr
         
         <h2 className="text-xl font-bold mb-6 text-gray-800 border-b pb-2">Деталі завдання</h2>
         
-        {/* Loading State[cite: 25] */}
         {isLoading && (
           <div className="flex justify-center items-center py-8">
             <span className="text-gray-500 animate-pulse">Завантаження даних сервера...</span>
           </div>
         )}
         
-        {/* Error State[cite: 25] */}
+
         {error && (
           <div className="text-red-500 bg-red-50 p-4 rounded-lg text-center">
             <p>{error}</p>
@@ -75,7 +70,7 @@ export default function TaskDetailsModal({ taskId, onClose }: TaskDetailsModalPr
           </div>
         )}
         
-        {/* Success State[cite: 25] */}
+
         {!isLoading && !error && taskDetails && (
           <div className="flex flex-col gap-4">
             <div>

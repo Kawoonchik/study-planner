@@ -1,5 +1,4 @@
 import { useTaskContext } from '../hooks/useTaskContext';
-import type { TaskFilter } from '../context/task-context';
 
 interface TaskFiltersProps {
   onClearCompleted?: () => void;

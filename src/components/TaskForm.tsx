@@ -3,7 +3,7 @@ import { useTaskContext } from '../hooks/useTaskContext';
 import { taskRepository } from '../repositories/taskRepository';
 import type { Task, Priority } from '../types/task';
 
-// Оновлені пропси: тепер форма знає про onSave
+
 interface TaskFormProps {
   taskToEdit?: Task;
   onClose?: () => void;
@@ -13,13 +13,11 @@ interface TaskFormProps {
 export default function TaskForm({ taskToEdit, onClose, onSave }: TaskFormProps) {
   const { toast } = useTaskContext();
   
-  // Локальний стейт форми
   const [title, setTitle] = useState(taskToEdit?.title || '');
   const [description, setDescription] = useState(taskToEdit?.description || '');
   const [priority, setPriority] = useState<Priority>(taskToEdit?.priority || 'medium');
   const [category, setCategory] = useState(taskToEdit?.category || 'General');
   
-  // Стейт для блокування кнопок під час запиту
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {

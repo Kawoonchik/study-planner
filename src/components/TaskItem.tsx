@@ -15,22 +15,19 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const { toast } = useTaskContext();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false); // Власний UI для підтвердження видалення[cite: 15]
+  const [showConfirm, setShowConfirm] = useState(false); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  // Додаткове завдання 2: Optimistic update для зміни completed[cite: 15]
   const handleToggle = async () => {
     const updatedTask = { ...task, completed: !task.completed };
     
-    // 1. ОПТИМІСТИЧНЕ ОНОВЛЕННЯ: Одразу показуємо результат у UI, не чекаючи сервера
+
     onUpdate(updatedTask); 
     
     try {
-      // 2. Робимо запит на сервер
       await taskRepository.update(task.id, { completed: updatedTask.completed });
     } catch (error) {
-      // 3. ВІДКОЧЕННЯ: Якщо сталася помилка, повертаємо старе значення і показуємо помилку
       onUpdate(task); 
       toast('Помилка сервера. Зміни скасовано.');
     }
@@ -41,7 +38,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     try {
       const success = await taskRepository.delete(task.id);
       if (success) {
-        onDelete(task.id); // Видаляємо з локального списку[cite: 11]
+        onDelete(task.id); 
         toast('Завдання успішно видалено');
       }
     } catch (error) {
@@ -51,14 +48,13 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     }
   };
 
-  // Режим редагування (викличемо TaskForm)
   if (isEditing) {
     return (
       <div className="w-full bg-white p-2 rounded-xl border border-blue-200 shadow-sm">
         <TaskForm 
           taskToEdit={task} 
           onClose={() => setIsEditing(false)} 
-          onSave={(updatedTask: Task) => { // Додамо цей проп у TaskForm на наступному кроці
+          onSave={(updatedTask: Task) => { 
             onUpdate(updatedTask);
             setIsEditing(false);
           }}
@@ -67,7 +63,6 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     );
   }
 
-  // Режим підтвердження видалення (замість забороненого alert/confirm)[cite: 9, 15]
   if (showConfirm) {
     return (
       <li className="flex justify-between items-center p-4 border rounded-xl bg-red-50 border-red-200">
@@ -92,7 +87,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     );
   }
 
-  // Звичайний режим перегляду
+
   return (
     <li className={`flex justify-between items-center p-4 border rounded-xl transition-all duration-300 ${task.completed ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm hover:shadow'}`}>
       <div className="flex items-center gap-4">
@@ -115,7 +110,6 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         </div>
       </div>
       <div className="flex gap-2">
-        {/* НОВА КНОПКА ДЕТАЛІВ */}
         <button 
           onClick={() => setShowDetailsModal(true)}
           className="text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-medium transition"
@@ -137,7 +131,6 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         </button>
       </div>
 
-      {/* НОВИЙ ВИВІД МОДАЛЬНОГО ВІКНА */}
       {showDetailsModal && (
         <TaskDetailsModal 
           taskId={task.id} 
