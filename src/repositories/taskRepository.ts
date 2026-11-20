@@ -9,6 +9,9 @@ function toTask(todo: ApiTodo): Task {
     completed: todo.completed,
     priority: 'medium',
     category: 'General',
+    //
+    createdBy: `User #${todo.userId || 1}`,
+    createdAt: new Date().toLocaleDateString('uk-UA'),
   };
 }
 
@@ -26,7 +29,7 @@ export const taskRepository = {
     return toTask(response.data);
   },
 
-  async create(task: Omit<Task, 'id' | 'isDeleting'>): Promise<Task> {
+  async create(task: Omit<Task, 'id' | 'createdAt' | 'createdBy'> & { createdBy?: string }): Promise<Task> {
     const response = await httpClient.post<ApiTodo>('/todos/add', {
       todo: task.title,
       completed: task.completed,
@@ -40,6 +43,9 @@ export const taskRepository = {
       completed: task.completed,
       priority: task.priority,
       category: task.category,
+      //
+      createdBy: task.createdBy || 'Anonymous',
+      createdAt: new Date().toLocaleDateString('uk-UA'),
     };
   },
 

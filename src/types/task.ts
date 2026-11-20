@@ -1,24 +1,15 @@
-export type Priority = 'low' | 'medium' | 'high';
+export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface Task {
   id: number;
   title: string;
   description: string;
   completed: boolean;
-  priority: Priority;
+  priority: TaskPriority;
   category: string;
-  isDeleting?: boolean; 
+  createdBy: string;
+  createdAt: string;
 }
-
-export type TaskAction =
-  | { type: 'add'; payload: Omit<Task, 'id' | 'isDeleting'> }
-  | { type: 'toggle'; payload: { id: number } }
-  | { type: 'update'; payload: Task }
-  | { type: 'requestDelete'; payload: { id: number } }
-  | { type: 'confirmDelete'; payload: { id: number } }
-  | { type: 'undoDelete'; payload: { id: number } }
-  | { type: 'clearCompleted' }
-  | { type: 'reset'; payload: Task[] };
 
 export interface ApiTodo {
   id: number;
