@@ -1,3 +1,195 @@
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { taskRepository } from '../repositories/taskRepository';
+import { useAuth } from '../hooks/useAuth';
+import { useTaskContext } from '../hooks/useTaskContext';
+import type { Task } from '../types/task';
+
 export default function TaskDetailsPage() {
-  return <div className="text-gray-700">Деталі завдання (налаштуємо на Кроці 7)</div>;
+  const { taskId } = useParams<{ taskId: string }>();
+  const { isAuthenticated } = useAuth();
+  const { toast } = useTaskContext();
+  const navigate = useNavigate();
+
+  const [task, setTask] = useState<Task | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  useEffect(() => {
+    const numericId = Number(taskId);
+    if (!taskId || Number.isNaN(numericId) || numericId <= 0) {
+      setError('Некоректний ідентифікатор завдання');
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
+
+    taskRepository
+      .getById(numericId, controller.signal)
+      .then((data) => {
+        setTask(data);
+      })
+      .catch((err) => {
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Не вдалося завантажити деталі завдання');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [taskId]);
+
+
+  const handleEditClick = () => {
+    if (!isAuthenticated) {
+      toast('Увійдіть у систему, щоб редагувати завдання');
+      navigate('/login');
+      return;
+    }
+    setIsEditOpen(true);
+  };
+
+
+  const handleDeleteClick = async () => {
+    if (!task) return;
+
+    if (!isAuthenticated) {
+      toast('Увійдіть у систему, щоб видалити завдання');
+      navigate('/login');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await taskRepository.delete(task.id);
+      toast('Завдання успішно видалено');
+      navigate('/tasks');
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Помилка при видаленні завдання');
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <Link
+          to="/tasks"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+        >
+          <span>←</span>
+          <span>Назад до списку завдань</span>
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center text-gray-500">
+          Завантаження деталей завдання...
+        </div>
+      ) : error || !task ? (
+        <div className="bg-red-50 p-6 rounded-2xl border border-red-200 text-red-700 text-sm">
+          {error || 'Завдання не знайдено'}
+        </div>
+      ) : (
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+          {/* Заголовок та статус виконання */}
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-gray-400">Завдання #{task.id}</span>
+              <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
+            </div>
+
+            <span
+              className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                task.completed
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              {task.completed ? 'Виконано' : 'Не виконано'}
+            </span>
+          </div>
+
+
+          <div>
+            <h2 className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1.5">
+              Опис
+            </h2>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {task.description || 'Опис для цього завдання відсутній.'}
+            </p>
+          </div>
+
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div>
+              <p className="text-xs text-gray-400">Категорія</p>
+              <p className="text-sm font-medium text-gray-900 mt-0.5">{task.category}</p>
+            </div>
+
+            <div>
+              <p className="text-xs text-gray-400">Пріоритет</p>
+              <p className="text-sm font-medium text-gray-900 capitalize mt-0.5">
+                {task.priority}
+              </p>
+            </div>
+
+
+            <div>
+              <p className="text-xs text-gray-400">Створив (client metadata)</p>
+              <p className="text-sm font-medium text-gray-900 mt-0.5">{task.createdBy}</p>
+            </div>
+
+            <div>
+              <p className="text-xs text-gray-400">Дата створення (client metadata)</p>
+              <p className="text-sm font-medium text-gray-900 mt-0.5">{task.createdAt}</p>
+            </div>
+          </div>
+
+
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-gray-100">
+            <button
+              onClick={handleEditClick}
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition cursor-pointer"
+            >
+              Редагувати
+            </button>
+
+            <button
+              onClick={handleDeleteClick}
+              disabled={isDeleting}
+              className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 text-sm font-medium rounded-xl transition cursor-pointer"
+            >
+              {isDeleting ? 'Видалення...' : 'Видалити'}
+            </button>
+          </div>
+        </div>
+      )}
+
+
+      {isEditOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl max-w-sm w-full space-y-4">
+            <p className="font-medium text-gray-900">
+              Діалог редагування завдання (підключимо TaskFormDialog на Кроці 8)
+            </p>
+            <button
+              onClick={() => setIsEditOpen(false)}
+              className="px-4 py-2 bg-gray-900 text-white text-sm rounded-xl cursor-pointer"
+            >
+              Закрити
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -1,5 +1,5 @@
 import { httpClient } from '../api/httpClient';
-import type { Task, ApiTodo, TodosResponse } from '../types/task';
+import type { ApiTodo, Task, TodosResponse } from '../types/task';
 
 function toTask(todo: ApiTodo): Task {
   return {
@@ -15,9 +15,25 @@ function toTask(todo: ApiTodo): Task {
   };
 }
 
+export interface GetTasksParams {
+  limit?: number;
+  skip?: number;
+  search?: string;
+  signal?: AbortSignal;
+}
+
 export const taskRepository = {
-  async getAll(limit = 10, skip = 0, signal?: AbortSignal): Promise<{ tasks: Task[], total: number }> {
-    const response = await httpClient.get<TodosResponse>(`/todos?limit=${limit}&skip=${skip}`, { signal });
+  async getAll({ limit = 10, skip = 0, search = '', signal }: GetTasksParams = {}) {
+    const trimmedSearch = search.trim();
+    const endpoint = trimmedSearch ? '/todos/search' : '/todos';
+
+    const response = await httpClient.get<TodosResponse>(endpoint, {
+      params: trimmedSearch
+        ? { q: trimmedSearch, limit, skip }
+        : { limit, skip },
+      signal,
+    });
+
     return {
       tasks: response.data.todos.map(toTask),
       total: response.data.total,
@@ -29,7 +45,9 @@ export const taskRepository = {
     return toTask(response.data);
   },
 
-  async create(task: Omit<Task, 'id' | 'createdAt' | 'createdBy'> & { createdBy?: string }): Promise<Task> {
+  async create(
+    task: Omit<Task, 'id' | 'createdAt' | 'createdBy'> & { createdBy?: string }
+  ): Promise<Task> {
     const response = await httpClient.post<ApiTodo>('/todos/add', {
       todo: task.title,
       completed: task.completed,
@@ -49,30 +67,20 @@ export const taskRepository = {
     };
   },
 
-  async update(id: number, updates: Partial<Task>): Promise<Task> {
-    const payload: Partial<ApiTodo> = {};
-    if (updates.title !== undefined) payload.todo = updates.title;
-    if (updates.completed !== undefined) payload.completed = updates.completed;
-
-    const response = await httpClient.patch<ApiTodo>(`/todos/${id}`, payload);
-    return toTask(response.data);
-  },
-
-  async delete(id: number): Promise<boolean> {
-    await httpClient.delete(`/todos/${id}`);
-    return true;
-  },
-
-
-  async search(query: string, limit = 10, skip = 0, signal?: AbortSignal): Promise<{ tasks: Task[], total: number }> {
-    const response = await httpClient.get<TodosResponse>(`/todos?limit=150&skip=0`, { signal });
-    const filtered = response.data.todos
-      .map(toTask)
-      .filter((t) => t.title.toLowerCase().includes(query.toLowerCase()));
+  async update(id: number, updates: Partial<Omit<Task, 'id'>>): Promise<Task> {
+    const response = await httpClient.put<ApiTodo>(`/todos/${id}`, {
+      ...(updates.title !== undefined && { todo: updates.title }),
+      ...(updates.completed !== undefined && { completed: updates.completed }),
+    });
 
     return {
-      tasks: filtered.slice(skip, skip + limit),
-      total: filtered.length,
+      ...toTask(response.data),
+      ...updates,
+      id,
     };
+  },
+
+  async delete(id: number): Promise<void> {
+    await httpClient.delete(`/todos/${id}`);
   },
 };
