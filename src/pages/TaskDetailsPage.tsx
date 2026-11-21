@@ -13,41 +13,51 @@ export default function TaskDetailsPage() {
   const { toast } = useTaskContext();
   const navigate = useNavigate();
 
-  const [task, setTask] = useState<Task | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const numericId = Number(taskId);
+  const isInvalidId = !taskId || Number.isNaN(numericId) || numericId <= 0;
+
+  const [fetchState, setFetchState] = useState<{
+    id: number | null;
+    task: Task | null;
+    error: string | null;
+  }>({
+    id: null,
+    task: null,
+    error: null,
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
+  const isLoading = !isInvalidId && fetchState.id !== numericId;
+  const error = isInvalidId
+    ? 'Некоректний ідентифікатор завдання'
+    : fetchState.id === numericId
+      ? fetchState.error
+      : null;
+  const task = !isInvalidId && fetchState.id === numericId ? fetchState.task : null;
+
   useEffect(() => {
-    const numericId = Number(taskId);
-    if (!taskId || Number.isNaN(numericId) || numericId <= 0) {
-      setError('Некоректний ідентифікатор завдання');
-      setIsLoading(false);
-      return;
-    }
+    if (isInvalidId) return;
 
     const controller = new AbortController();
-    setIsLoading(true);
-    setError(null);
 
     taskRepository
       .getById(numericId, controller.signal)
       .then((data) => {
-        setTask(data);
+        setFetchState({ id: numericId, task: data, error: null });
       })
       .catch((err) => {
         if (err.name === 'CanceledError' || err.name === 'AbortError') return;
-        setError(err instanceof Error ? err.message : 'Не вдалося завантажити деталі завдання');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        setFetchState({
+          id: numericId,
+          task: null,
+          error: err instanceof Error ? err.message : 'Не вдалося завантажити деталі завдання',
+        });
       });
 
     return () => controller.abort();
-  }, [taskId]);
+  }, [isInvalidId, numericId]);
 
   const handleEditClick = () => {
     if (!isAuthenticated) {
@@ -57,7 +67,6 @@ export default function TaskDetailsPage() {
     }
     setIsEditOpen(true);
   };
-
 
   const handleUpdateTask = async (data: TaskFormData) => {
     if (!task) return;
@@ -69,16 +78,17 @@ export default function TaskDetailsPage() {
     }
 
     const updated = await taskRepository.update(task.id, data);
-    setTask((prev) =>
-      prev
+    setFetchState((prev) => ({
+      ...prev,
+      task: prev.task
         ? {
-            ...prev,
+            ...prev.task,
             ...updated,
-            createdBy: prev.createdBy,
-            createdAt: prev.createdAt,
+            createdBy: prev.task.createdBy,
+            createdAt: prev.task.createdAt,
           }
-        : updated
-    );
+        : updated,
+    }));
     toast('Завдання успішно оновлено');
   };
 
@@ -141,7 +151,6 @@ export default function TaskDetailsPage() {
             </span>
           </div>
 
-
           <div>
             <h2 className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1.5">
               Опис
@@ -150,7 +159,6 @@ export default function TaskDetailsPage() {
               {task.description || 'Опис для цього завдання відсутній.'}
             </p>
           </div>
-
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
             <div>
@@ -165,7 +173,6 @@ export default function TaskDetailsPage() {
               </p>
             </div>
 
-
             <div>
               <p className="text-xs text-gray-400">Створив (client metadata)</p>
               <p className="text-sm font-medium text-gray-900 mt-0.5">{task.createdBy}</p>
@@ -176,7 +183,6 @@ export default function TaskDetailsPage() {
               <p className="text-sm font-medium text-gray-900 mt-0.5">{task.createdAt}</p>
             </div>
           </div>
-
 
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-gray-100">
             <button
@@ -196,7 +202,6 @@ export default function TaskDetailsPage() {
           </div>
         </div>
       )}
-
 
       <TaskFormDialog
         open={isEditOpen}

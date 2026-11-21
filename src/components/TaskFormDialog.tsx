@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { taskSchema, type TaskFormData } from '../schemas/taskSchema';
@@ -37,11 +37,14 @@ export default function TaskFormDialog({
     },
   });
 
+  const handleClose = useCallback(() => {
+    setSubmitError(null);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
 
-    setSubmitError(null);
     if (mode === 'edit' && task) {
       reset({
         title: task.title,
@@ -64,19 +67,18 @@ export default function TaskFormDialog({
     return () => cancelAnimationFrame(frame);
   }, [open, mode, task, reset, setFocus]);
 
-
   useEffect(() => {
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !isSubmitting) {
-        onClose();
+        handleClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, isSubmitting, onClose]);
+  }, [open, isSubmitting, handleClose]);
 
   if (!open) {
     return null;
@@ -86,7 +88,7 @@ export default function TaskFormDialog({
     setSubmitError(null);
     try {
       await onSubmit(data);
-      onClose();
+      handleClose();
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : 'Не вдалося зберегти завдання'
@@ -99,7 +101,7 @@ export default function TaskFormDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={() => !isSubmitting && onClose()}
+      onClick={() => !isSubmitting && handleClose()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-dialog-title"
@@ -114,7 +116,7 @@ export default function TaskFormDialog({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isSubmitting}
             aria-label="Закрити вікно"
             className="text-gray-400 hover:text-gray-700 text-xl leading-none px-2 py-1 rounded-lg transition cursor-pointer disabled:opacity-40"
@@ -213,7 +215,7 @@ export default function TaskFormDialog({
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
               className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 rounded-xl transition cursor-pointer"
             >

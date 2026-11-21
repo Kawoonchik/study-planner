@@ -21,16 +21,28 @@ export default function TasksPage() {
   const statusFilter = (searchParams.get('status') as StatusFilter) || 'all';
   const priorityFilter = (searchParams.get('priority') as PriorityFilter) || 'all';
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const requestKey = `${page}:${debouncedSearch}`;
+  const [fetchState, setFetchState] = useState<{
+    key: string;
+    tasks: Task[];
+    total: number;
+    error: string | null;
+  }>({
+    key: '',
+    tasks: [],
+    total: 0,
+    error: null,
+  });
+
+  const isLoading = fetchState.key !== requestKey;
+  const tasks = fetchState.tasks;
+  const total = fetchState.total;
+  const error = fetchState.key === requestKey ? fetchState.error : null;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -40,11 +52,8 @@ export default function TasksPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-
   useEffect(() => {
     const controller = new AbortController();
-    setIsLoading(true);
-    setError(null);
 
     taskRepository
       .getAll({
@@ -54,22 +63,24 @@ export default function TasksPage() {
         signal: controller.signal,
       })
       .then((data) => {
-        setTasks(data.tasks);
-        setTotal(data.total);
+        setFetchState({
+          key: requestKey,
+          tasks: data.tasks,
+          total: data.total,
+          error: null,
+        });
       })
       .catch((err) => {
         if (err.name === 'CanceledError' || err.name === 'AbortError') return;
-        setError(err instanceof Error ? err.message : 'Не вдалося завантажити завдання');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        setFetchState((prev) => ({
+          ...prev,
+          key: requestKey,
+          error: err instanceof Error ? err.message : 'Не вдалося завантажити завдання',
+        }));
       });
 
     return () => controller.abort();
-  }, [page, debouncedSearch]);
-
+  }, [page, debouncedSearch, requestKey]);
 
   const updateQueryParam = (key: 'status' | 'priority', value: string) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -81,7 +92,6 @@ export default function TasksPage() {
     setSearchParams(nextParams);
   };
 
-
   const handleOpenCreate = () => {
     if (!isAuthenticated) {
       toast('Увійдіть у систему, щоб створити завдання');
@@ -90,7 +100,6 @@ export default function TasksPage() {
     }
     setIsCreateOpen(true);
   };
-
 
   const handleCreateTask = async (data: TaskFormData) => {
     if (!isAuthenticated) {
@@ -105,17 +114,18 @@ export default function TasksPage() {
       createdBy: user?.username || 'User',
     });
 
-
-    setTasks((prev) => {
-      const uniqueTask = prev.some((item) => item.id === created.id)
+    setFetchState((prev) => {
+      const uniqueTask = prev.tasks.some((item) => item.id === created.id)
         ? { ...created, id: Date.now() }
         : created;
-      return [uniqueTask, ...prev];
+      return {
+        ...prev,
+        tasks: [uniqueTask, ...prev.tasks],
+        total: prev.total + 1,
+      };
     });
-    setTotal((prev) => prev + 1);
     toast('Завдання успішно створено');
   };
-
 
   const handleToggleTask = async (task: Task) => {
     if (!isAuthenticated) {
@@ -128,15 +138,17 @@ export default function TasksPage() {
       const updated = await taskRepository.update(task.id, {
         completed: !task.completed,
       });
-      setTasks((prev) =>
-        prev.map((item) => (item.id === task.id ? { ...item, completed: updated.completed } : item))
-      );
+      setFetchState((prev) => ({
+        ...prev,
+        tasks: prev.tasks.map((item) =>
+          item.id === task.id ? { ...item, completed: updated.completed } : item
+        ),
+      }));
       toast('Статус завдання оновлено');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Помилка оновлення');
     }
   };
-
 
   const handleDeleteTask = async (id: number) => {
     if (!isAuthenticated) {
@@ -147,7 +159,10 @@ export default function TasksPage() {
 
     try {
       await taskRepository.delete(id);
-      setTasks((prev) => prev.filter((item) => item.id !== id));
+      setFetchState((prev) => ({
+        ...prev,
+        tasks: prev.tasks.filter((item) => item.id !== id),
+      }));
       toast('Завдання видалено');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Помилка видалення');
@@ -230,7 +245,6 @@ export default function TasksPage() {
           </select>
         </div>
       </div>
-
 
       {isLoading ? (
         <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center text-gray-500">
