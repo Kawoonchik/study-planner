@@ -7,6 +7,7 @@ import TasksPage from './pages/TasksPage';
 import TaskDetailsPage from './pages/TaskDetailsPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
 //https://youtu.be/dQw4w9WgXcQ?si=-Cz1ujAZvJ0jDYfh
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </BrowserRouter>
