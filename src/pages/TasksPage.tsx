@@ -3,7 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { taskRepository } from '../repositories/taskRepository';
 import { useAuth } from '../hooks/useAuth';
 import { useTaskContext } from '../hooks/useTaskContext';
+import TaskFormDialog from '../components/TaskFormDialog';
 import type { Task, TaskPriority } from '../types/task';
+import type { TaskFormData } from '../schemas/taskSchema';
 
 type StatusFilter = 'all' | 'completed' | 'incomplete';
 type PriorityFilter = 'all' | TaskPriority;
@@ -11,10 +13,9 @@ type PriorityFilter = 'all' | TaskPriority;
 const PAGE_LIMIT = 10;
 
 export default function TasksPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useTaskContext();
   const navigate = useNavigate();
-
 
   const [searchParams, setSearchParams] = useSearchParams();
   const statusFilter = (searchParams.get('status') as StatusFilter) || 'all';
@@ -69,6 +70,7 @@ export default function TasksPage() {
     return () => controller.abort();
   }, [page, debouncedSearch]);
 
+
   const updateQueryParam = (key: 'status' | 'priority', value: string) => {
     const nextParams = new URLSearchParams(searchParams);
     if (value === 'all') {
@@ -79,6 +81,7 @@ export default function TasksPage() {
     setSearchParams(nextParams);
   };
 
+
   const handleOpenCreate = () => {
     if (!isAuthenticated) {
       toast('Увійдіть у систему, щоб створити завдання');
@@ -87,6 +90,32 @@ export default function TasksPage() {
     }
     setIsCreateOpen(true);
   };
+
+
+  const handleCreateTask = async (data: TaskFormData) => {
+    if (!isAuthenticated) {
+      toast('Увійдіть у систему, щоб створити завдання');
+      navigate('/login');
+      return;
+    }
+
+    const created = await taskRepository.create({
+      ...data,
+      completed: false,
+      createdBy: user?.username || 'User',
+    });
+
+
+    setTasks((prev) => {
+      const uniqueTask = prev.some((item) => item.id === created.id)
+        ? { ...created, id: Date.now() }
+        : created;
+      return [uniqueTask, ...prev];
+    });
+    setTotal((prev) => prev + 1);
+    toast('Завдання успішно створено');
+  };
+
 
   const handleToggleTask = async (task: Task) => {
     if (!isAuthenticated) {
@@ -107,6 +136,7 @@ export default function TasksPage() {
       toast(err instanceof Error ? err.message : 'Помилка оновлення');
     }
   };
+
 
   const handleDeleteTask = async (id: number) => {
     if (!isAuthenticated) {
@@ -201,6 +231,7 @@ export default function TasksPage() {
         </div>
       </div>
 
+
       {isLoading ? (
         <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center text-gray-500">
           Завантаження завдань...
@@ -290,21 +321,12 @@ export default function TasksPage() {
         </div>
       )}
 
-      {isCreateOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl max-w-sm w-full space-y-4">
-            <p className="font-medium text-gray-900">
-              Діалог створення завдання (підключимо TaskFormDialog на Кроці 8)
-            </p>
-            <button
-              onClick={() => setIsCreateOpen(false)}
-              className="px-4 py-2 bg-gray-900 text-white text-sm rounded-xl cursor-pointer"
-            >
-              Закрити
-            </button>
-          </div>
-        </div>
-      )}
+      <TaskFormDialog
+        open={isCreateOpen}
+        mode="create"
+        onClose={() => setIsCreateOpen(false)}
+        onSubmit={handleCreateTask}
+      />
     </div>
   );
 }

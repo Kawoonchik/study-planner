@@ -3,7 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { taskRepository } from '../repositories/taskRepository';
 import { useAuth } from '../hooks/useAuth';
 import { useTaskContext } from '../hooks/useTaskContext';
+import TaskFormDialog from '../components/TaskFormDialog';
 import type { Task } from '../types/task';
+import type { TaskFormData } from '../schemas/taskSchema';
 
 export default function TaskDetailsPage() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -47,7 +49,6 @@ export default function TaskDetailsPage() {
     return () => controller.abort();
   }, [taskId]);
 
-
   const handleEditClick = () => {
     if (!isAuthenticated) {
       toast('Увійдіть у систему, щоб редагувати завдання');
@@ -57,6 +58,29 @@ export default function TaskDetailsPage() {
     setIsEditOpen(true);
   };
 
+
+  const handleUpdateTask = async (data: TaskFormData) => {
+    if (!task) return;
+
+    if (!isAuthenticated) {
+      toast('Увійдіть у систему, щоб редагувати завдання');
+      navigate('/login');
+      return;
+    }
+
+    const updated = await taskRepository.update(task.id, data);
+    setTask((prev) =>
+      prev
+        ? {
+            ...prev,
+            ...updated,
+            createdBy: prev.createdBy,
+            createdAt: prev.createdAt,
+          }
+        : updated
+    );
+    toast('Завдання успішно оновлено');
+  };
 
   const handleDeleteClick = async () => {
     if (!task) return;
@@ -100,7 +124,6 @@ export default function TaskDetailsPage() {
         </div>
       ) : (
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm space-y-6">
-          {/* Заголовок та статус виконання */}
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 pb-5">
             <div className="space-y-1">
               <span className="text-xs font-medium text-gray-400">Завдання #{task.id}</span>
@@ -175,21 +198,13 @@ export default function TaskDetailsPage() {
       )}
 
 
-      {isEditOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl max-w-sm w-full space-y-4">
-            <p className="font-medium text-gray-900">
-              Діалог редагування завдання (підключимо TaskFormDialog на Кроці 8)
-            </p>
-            <button
-              onClick={() => setIsEditOpen(false)}
-              className="px-4 py-2 bg-gray-900 text-white text-sm rounded-xl cursor-pointer"
-            >
-              Закрити
-            </button>
-          </div>
-        </div>
-      )}
+      <TaskFormDialog
+        open={isEditOpen}
+        mode="edit"
+        task={task ?? undefined}
+        onClose={() => setIsEditOpen(false)}
+        onSubmit={handleUpdateTask}
+      />
     </div>
   );
 }
